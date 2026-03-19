@@ -3,237 +3,446 @@
 <head>
 <meta charset="UTF-8">
 <title>Loop Engine Demo — 게임 + 앱 혼합</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* =============================================================
+   ForUI-inspired Design System
+   Color: Zinc Dark theme
+   Typography: Inter + JetBrains Mono
+   ============================================================= */
+:root {
+  /* Zinc Dark palette (from forui) */
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --border: #27272a;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --accent: #3f3f46;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --error: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --ring: #d4d4d8;
+
+  /* Spacing (forui FSizes) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Typography scale */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -4px rgba(0,0,0,0.3);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #0a0a0f;
-  color: #e0e0e0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
   overflow: hidden;
   height: 100vh;
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ===== 레이아웃 ===== */
+/* ===== Layout ===== */
 .layout {
   display: grid;
-  grid-template-columns: 320px 1fr 340px;
+  grid-template-columns: 300px 1fr 320px;
   height: 100vh;
+  gap: 1px;
+  background: var(--border);
 }
 
-/* ===== 왼쪽: 코드 패널 ===== */
+/* ===== Scrollbar (forui minimal) ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+/* ===== Left: Code Panel ===== */
 .code-panel {
-  background: #12121a;
-  border-right: 1px solid #2a2a3a;
+  background: var(--background);
   overflow-y: auto;
-  padding: 16px;
+  padding: 20px 16px;
 }
-.code-panel h2 {
-  color: #7aa2f7;
-  font-size: 14px;
-  margin-bottom: 12px;
+.panel-header {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
+.panel-header h2 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.panel-header .badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+  background: var(--info);
+  color: white;
+  animation: pulse-badge 2s infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Step badges (forui FBadge) */
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.step-badge.state-badge { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+.step-badge.update-badge { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
+.step-badge.view-badge { background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+.step-badge.loop-badge { background: rgba(59,130,246,0.15); color: var(--info); border: 1px solid rgba(59,130,246,0.3); }
+
+/* Code blocks (forui FCard style) */
 .code-block {
-  background: #1a1a2e;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  font-family: 'Consolas', 'Courier New', monospace;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
   font-size: 12px;
-  line-height: 1.6;
-  border: 1px solid #2a2a3a;
-  transition: border-color 0.3s;
+  line-height: 1.7;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .code-block.active {
-  border-color: #7aa2f7;
-  box-shadow: 0 0 15px rgba(122, 162, 247, 0.15);
+  border-color: var(--info);
+  box-shadow: 0 0 0 1px var(--info), var(--shadow-md);
 }
-.code-block .keyword { color: #bb9af7; }
-.code-block .string { color: #9ece6a; }
-.code-block .number { color: #ff9e64; }
-.code-block .comment { color: #565f89; }
-.code-block .fn { color: #7aa2f7; }
-.code-block .prop { color: #73daca; }
-.code-block .arrow { color: #89ddff; }
+.code-block .keyword { color: #a855f7; }
+.code-block .string { color: var(--success); }
+.code-block .number { color: var(--warning); }
+.code-block .comment { color: var(--muted-foreground); font-style: italic; }
+.code-block .fn { color: var(--info); }
+.code-block .prop { color: #2dd4bf; }
+.code-block .arrow { color: #67e8f9; }
 
-.step-label {
-  display: inline-block;
-  background: #7aa2f7;
-  color: #0a0a0f;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-bottom: 6px;
-}
-
-/* ===== 가운데: 게임 캔버스 ===== */
+/* ===== Center: Game Panel ===== */
 .game-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #0f0f18;
+  background: var(--background);
   position: relative;
+  padding: 16px;
 }
+
 canvas {
-  border-radius: 12px;
-  box-shadow: 0 0 40px rgba(122, 162, 247, 0.1);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
 }
-.game-controls {
-  margin-top: 20px;
+
+/* Loop flow indicator (forui FBadge row) */
+.loop-indicator {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 4px;
+  background: var(--card);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
-.game-controls button {
-  background: #1a1a2e;
-  color: #e0e0e0;
-  border: 1px solid #3a3a5a;
-  padding: 8px 20px;
-  border-radius: 8px;
-  font-size: 13px;
+.loop-step {
+  padding: 5px 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: all 0.15s ease;
+  cursor: default;
+}
+.loop-step.active-step { color: white; }
+.loop-step.step-state.active-step { background: var(--warning); color: #000; }
+.loop-step.step-update.active-step { background: #a855f7; }
+.loop-step.step-view.active-step { background: var(--success); color: #000; }
+
+/* FPS (forui muted text) */
+.fps-counter {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  background: var(--card);
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+/* Mode selector (forui FTabs / segmented control) */
+.mode-tabs {
+  margin-top: 16px;
+  display: flex;
+  background: var(--card);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.mode-tab {
+  padding: 8px 18px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
 }
-.game-controls button:hover {
-  background: #2a2a4a;
-  border-color: #7aa2f7;
+.mode-tab:hover { color: var(--foreground); background: var(--muted); }
+.mode-tab.selected {
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
-.game-controls button.active-btn {
-  background: #7aa2f7;
-  color: #0a0a0f;
+
+/* Help text */
+.help-text {
+  margin-top: 10px;
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+/* Input area (forui FTextField + FButton) */
+.input-area {
+  margin-top: 12px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.input-area.visible { display: flex; }
+
+.f-input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-family: 'Inter', sans-serif;
+  width: 260px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.f-input:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px rgba(212,212,216,0.2);
+}
+.f-input::placeholder { color: var(--muted-foreground); }
+
+/* Buttons (forui FButton variants) */
+.f-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.f-btn:active { transform: scale(0.97); }
+
+.f-btn-primary {
+  background: var(--foreground);
+  color: var(--background);
+}
+.f-btn-primary:hover { opacity: 0.9; }
+
+.f-btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+}
+.f-btn-secondary:hover { background: var(--accent); }
+
+.f-btn-success {
+  background: var(--success);
+  color: #000;
+}
+.f-btn-success:hover { opacity: 0.9; }
+
+.f-btn-destructive {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+.f-btn-destructive:hover { opacity: 0.9; }
+
+/* ===== Right: State Panel ===== */
+.state-panel {
+  background: var(--background);
+  overflow-y: auto;
+  padding: 20px 16px;
+}
+
+/* Section card (forui FCard) */
+.f-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.f-card:hover { border-color: var(--accent); }
+
+.f-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.f-card-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.f-card-badge {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 999px;
   font-weight: 600;
 }
 
-/* ===== 오른쪽: 상태 패널 ===== */
-.state-panel {
-  background: #12121a;
-  border-left: 1px solid #2a2a3a;
-  overflow-y: auto;
-  padding: 16px;
-}
-.state-section {
-  background: #1a1a2e;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #2a2a3a;
-}
-.state-section h3 {
-  font-size: 12px;
-  color: #565f89;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-}
+/* State rows (forui FItem style) */
 .state-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
-  font-size: 13px;
+  padding: 6px 0;
+  font-size: var(--text-sm);
 }
-.state-key { color: #73daca; }
+.state-row + .state-row { border-top: 1px solid rgba(39,39,42,0.5); }
+.state-key {
+  color: var(--muted-foreground);
+  font-weight: 500;
+  font-size: var(--text-xs);
+}
 .state-val {
-  color: #ff9e64;
-  font-family: 'Consolas', monospace;
-  transition: all 0.3s;
+  color: var(--foreground);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-xs);
+  transition: all 0.3s ease;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
 }
 .state-val.changed {
-  color: #f7768e;
-  transform: scale(1.1);
+  background: rgba(59,130,246,0.2);
+  color: var(--info);
 }
 
-/* 메시지 로그 */
+/* Message log (forui FItem list) */
 .msg-log {
-  max-height: 180px;
+  max-height: 200px;
   overflow-y: auto;
-  font-size: 11px;
-  font-family: 'Consolas', monospace;
+  font-size: var(--text-xs);
+  font-family: 'JetBrains Mono', monospace;
 }
 .msg-item {
-  padding: 3px 0;
-  border-bottom: 1px solid #1a1a2e;
-  animation: fadeIn 0.3s;
-}
-.msg-item .msg-time { color: #565f89; }
-.msg-item .msg-type { color: #bb9af7; }
-.msg-item .msg-data { color: #9ece6a; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(10px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* FPS 카운터 */
-.fps-counter {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  font-family: 'Consolas', monospace;
-  font-size: 12px;
-  color: #565f89;
-}
-
-/* 루프 흐름 표시 */
-.loop-indicator {
-  position: absolute;
-  top: 12px;
-  left: 12px;
+  padding: 5px 0;
+  animation: slideIn 0.2s ease;
   display: flex;
   gap: 6px;
+  align-items: baseline;
 }
-.loop-step {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #1a1a2e;
-  color: #565f89;
-  transition: all 0.15s;
+.msg-item + .msg-item { border-top: 1px solid rgba(39,39,42,0.3); }
+.msg-item .msg-time { color: var(--muted-foreground); font-size: 10px; flex-shrink: 0; }
+.msg-item .msg-type {
+  color: #a855f7;
+  font-weight: 500;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(168,85,247,0.1);
+  flex-shrink: 0;
 }
-.loop-step.active-step {
-  color: #0a0a0f;
-}
-.loop-step.step-state.active-step { background: #ff9e64; }
-.loop-step.step-update.active-step { background: #bb9af7; }
-.loop-step.step-view.active-step { background: #9ece6a; }
+.msg-item .msg-data { color: var(--muted-foreground); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.mode-selector {
-  margin-top: 12px;
-  display: flex;
-  gap: 8px;
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.mode-btn {
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  border: 1px solid #3a3a5a;
-  background: #1a1a2e;
-  color: #e0e0e0;
-  transition: all 0.2s;
-}
-.mode-btn.selected {
-  background: #bb9af7;
-  color: #0a0a0f;
-  border-color: #bb9af7;
-  font-weight: 600;
+
+/* Divider (forui FDivider) */
+.f-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
 }
 </style>
 </head>
 <body>
 
 <div class="layout">
-  <!-- ===== 왼쪽: 코드 설명 ===== -->
+  <!-- ===== Left: Code Panel ===== -->
   <div class="code-panel">
-    <h2>📝 엔진 코드 (실시간)</h2>
+    <div class="panel-header">
+      <h2>Engine Code</h2>
+      <span class="badge">LIVE</span>
+    </div>
 
-    <div class="step-label">① STATE (상태)</div>
+    <div class="step-badge state-badge">1 &middot; State</div>
     <div class="code-block" id="code-state">
       <span class="comment">// 세상의 모든 정보를 저장</span><br>
       <span class="keyword">let</span> state = {<br>
@@ -247,7 +456,7 @@ canvas {
       }<br>
     </div>
 
-    <div class="step-label">② UPDATE (상태 변경)</div>
+    <div class="step-badge update-badge">2 &middot; Update</div>
     <div class="code-block" id="code-update">
       <span class="keyword">function</span> <span class="fn">update</span>(state, message) {<br>
       &nbsp;&nbsp;<span class="keyword">switch</span>(message.type) {<br>
@@ -257,7 +466,7 @@ canvas {
       }
     </div>
 
-    <div class="step-label">③ VIEW (그리기)</div>
+    <div class="step-badge view-badge">3 &middot; View</div>
     <div class="code-block" id="code-view">
       <span class="keyword">function</span> <span class="fn">view</span>(state) {<br>
       &nbsp;&nbsp;<span class="comment">// 캔버스를 싹 지우고</span><br>
@@ -271,7 +480,7 @@ canvas {
       }
     </div>
 
-    <div class="step-label">🔄 LOOP (무한반복)</div>
+    <div class="step-badge loop-badge">Loop</div>
     <div class="code-block" id="code-loop">
       <span class="comment">// 이 3줄이 전부입니다</span><br>
       <span class="keyword">function</span> <span class="fn">gameLoop</span>() {<br>
@@ -282,61 +491,53 @@ canvas {
     </div>
   </div>
 
-  <!-- ===== 가운데: 게임 캔버스 ===== -->
+  <!-- ===== Center: Game Canvas ===== -->
   <div class="game-panel">
     <div class="loop-indicator">
-      <div class="loop-step step-state" id="ind-state">① STATE</div>
-      <div class="loop-step step-update" id="ind-update">② UPDATE</div>
-      <div class="loop-step step-view" id="ind-view">③ VIEW</div>
+      <div class="loop-step step-state" id="ind-state">State</div>
+      <div class="loop-step step-update" id="ind-update">Update</div>
+      <div class="loop-step step-view" id="ind-view">View</div>
     </div>
-    <div class="fps-counter" id="fps">0 FPS | Frame #0</div>
+    <div class="fps-counter" id="fps">0 FPS</div>
 
     <canvas id="canvas" width="560" height="400"></canvas>
 
-    <div class="game-controls">
-      <button onclick="setMode('game')" id="btn-game" class="active-btn">🎮 게임 모드</button>
-      <button onclick="setMode('hash')" id="btn-hash">🔐 해시 앱 모드</button>
-      <button onclick="setMode('encrypt')" id="btn-encrypt">🔒 암호화 모드</button>
-      <button onclick="setMode('both')" id="btn-both">🎮+🔐 혼합 모드</button>
+    <div class="mode-tabs">
+      <button onclick="setMode('game')" id="btn-game" class="mode-tab selected">Game</button>
+      <button onclick="setMode('hash')" id="btn-hash" class="mode-tab">Hash</button>
+      <button onclick="setMode('encrypt')" id="btn-encrypt" class="mode-tab">Encrypt</button>
+      <button onclick="setMode('both')" id="btn-both" class="mode-tab">Hybrid</button>
     </div>
-    <div style="margin-top:10px; font-size:11px; color:#565f89; text-align:center;">
-      방향키로 이동 · 코인을 먹으면 점수 올라감 · 모드를 바꿔보세요
+
+    <div class="help-text">
+      Arrow keys to move &middot; Collect coins &middot; Switch modes above
     </div>
-    <div id="text-input-area" style="margin-top:10px; display:none;">
+
+    <div id="text-input-area" class="input-area">
       <input id="user-input" type="text" placeholder="해시할 텍스트 입력..."
-        style="background:#1a1a2e; border:1px solid #3a3a5a; color:#e0e0e0;
-               padding:8px 16px; border-radius:8px; font-size:14px; width:300px;"
-        oninput="onTextInput(this.value)">
-      <button onclick="onHashCompute()"
-        style="background:#7aa2f7; color:#0a0a0f; border:none; padding:8px 16px;
-               border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-left:6px;">
-        Compute Hash
-      </button>
+        class="f-input" oninput="onTextInput(this.value)">
+      <button onclick="onHashCompute()" class="f-btn f-btn-primary">Compute</button>
     </div>
-    <div id="encrypt-input-area" style="margin-top:10px; display:none;">
+
+    <div id="encrypt-input-area" class="input-area">
       <input id="encrypt-input" type="text" placeholder="암호화할 텍스트..."
-        style="background:#1a1a2e; border:1px solid #3a3a5a; color:#e0e0e0;
-               padding:8px 16px; border-radius:8px; font-size:14px; width:220px;"
-        oninput="onEncryptInput(this.value)">
-      <button onclick="onEncrypt()"
-        style="background:#9ece6a; color:#0a0a0f; border:none; padding:8px 16px;
-               border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-left:4px;">
-        Encrypt 🔒
-      </button>
-      <button onclick="onDecrypt()"
-        style="background:#f7768e; color:#0a0a0f; border:none; padding:8px 16px;
-               border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-left:4px;">
-        Decrypt 🔓
-      </button>
+        class="f-input" style="width:200px;" oninput="onEncryptInput(this.value)">
+      <button onclick="onEncrypt()" class="f-btn f-btn-success">Encrypt</button>
+      <button onclick="onDecrypt()" class="f-btn f-btn-destructive">Decrypt</button>
     </div>
   </div>
 
-  <!-- ===== 오른쪽: 상태 패널 ===== -->
+  <!-- ===== Right: State Panel ===== -->
   <div class="state-panel">
-    <h2 style="color:#ff9e64; font-size:14px; margin-bottom:12px;">📊 실시간 State 값</h2>
+    <div class="panel-header">
+      <h2>State Inspector</h2>
+    </div>
 
-    <div class="state-section">
-      <h3>🎮 플레이어</h3>
+    <div class="f-card">
+      <div class="f-card-header">
+        <span class="f-card-title">Player</span>
+        <span class="f-card-badge" style="background:rgba(59,130,246,0.15);color:var(--info);">GAME</span>
+      </div>
       <div class="state-row">
         <span class="state-key">player.x</span>
         <span class="state-val" id="s-px">300</span>
@@ -355,28 +556,34 @@ canvas {
       </div>
     </div>
 
-    <div class="state-section">
-      <h3>🔐 앱 상태</h3>
+    <div class="f-card">
+      <div class="f-card-header">
+        <span class="f-card-title">Application</span>
+        <span class="f-card-badge" style="background:rgba(168,85,247,0.15);color:#a855f7;">APP</span>
+      </div>
       <div class="state-row">
         <span class="state-key">mode</span>
         <span class="state-val" id="s-mode">game</span>
       </div>
       <div class="state-row">
         <span class="state-key">inputText</span>
-        <span class="state-val" id="s-input" style="font-size:11px; max-width:180px; overflow:hidden; text-overflow:ellipsis;">""</span>
+        <span class="state-val" id="s-input" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">""</span>
       </div>
       <div class="state-row">
         <span class="state-key">hashResult</span>
-        <span class="state-val" id="s-hash" style="font-size:9px; max-width:180px; overflow:hidden; text-overflow:ellipsis;">""</span>
+        <span class="state-val" id="s-hash" style="font-size:9px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">""</span>
       </div>
       <div class="state-row">
         <span class="state-key">encrypted</span>
-        <span class="state-val" id="s-enc" style="font-size:9px; max-width:180px; overflow:hidden; text-overflow:ellipsis;">""</span>
+        <span class="state-val" id="s-enc" style="font-size:9px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">""</span>
       </div>
     </div>
 
-    <div class="state-section">
-      <h3>🔄 엔진 상태</h3>
+    <div class="f-card">
+      <div class="f-card-header">
+        <span class="f-card-title">Engine</span>
+        <span class="f-card-badge" style="background:rgba(245,158,11,0.15);color:var(--warning);">LOOP</span>
+      </div>
       <div class="state-row">
         <span class="state-key">frame</span>
         <span class="state-val" id="s-frame">0</span>
@@ -391,8 +598,11 @@ canvas {
       </div>
     </div>
 
-    <div class="state-section">
-      <h3>📨 메시지 로그 (최근)</h3>
+    <div class="f-card">
+      <div class="f-card-header">
+        <span class="f-card-title">Message Log</span>
+        <span class="f-card-badge" style="background:rgba(34,197,94,0.15);color:var(--success);">LIVE</span>
+      </div>
       <div class="msg-log" id="msg-log"></div>
     </div>
   </div>
@@ -400,32 +610,26 @@ canvas {
 
 <script>
 // ============================================================
-//  ① STATE — 세상의 모든 정보
+//  STATE
 // ============================================================
 const state = {
-  // 게임
-  player: { x: 280, y: 200, size: 20, speed: 4, color: '#7aa2f7' },
+  player: { x: 280, y: 200, size: 20, speed: 4, color: '#3b82f6' },
   coins: [],
   score: 0,
   particles: [],
   trail: [],
-
-  // 앱
-  mode: 'game',       // 'game' | 'hash' | 'encrypt' | 'both'
+  mode: 'game',
   inputText: '',
   hashResult: '',
   encryptText: '',
   encrypted: '',
   decrypted: '',
   encKey: null,
-
-  // 엔진
   frame: 0,
   keys: {},
   messages: [],
 };
 
-// 코인 초기 배치
 function spawnCoins() {
   state.coins = [];
   for (let i = 0; i < 5; i++) {
@@ -440,7 +644,7 @@ function spawnCoins() {
 spawnCoins();
 
 // ============================================================
-//  메시지 시스템 — 이벤트를 쪽지로 변환
+//  Message System
 // ============================================================
 function sendMessage(type, data = {}) {
   state.messages.push({ type, data, time: Date.now() });
@@ -451,52 +655,35 @@ function logMessage(type, data) {
   const log = document.getElementById('msg-log');
   const now = new Date();
   const timeStr = now.toLocaleTimeString('ko', { hour12: false });
-  const dataStr = Object.keys(data).length ? JSON.stringify(data).slice(0, 40) : '';
+  const dataStr = Object.keys(data).length ? JSON.stringify(data).slice(0, 35) : '';
   const item = document.createElement('div');
   item.className = 'msg-item';
-  item.innerHTML = `<span class="msg-time">${timeStr}</span> <span class="msg-type">${type}</span> <span class="msg-data">${dataStr}</span>`;
+  item.innerHTML = `<span class="msg-time">${timeStr}</span><span class="msg-type">${type}</span><span class="msg-data">${dataStr}</span>`;
   log.insertBefore(item, log.firstChild);
   if (log.children.length > 30) log.removeChild(log.lastChild);
 }
 
-// 키보드 → 메시지
 document.addEventListener('keydown', e => {
   state.keys[e.key] = true;
-  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
-    e.preventDefault();
-  }
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
 });
 document.addEventListener('keyup', e => { state.keys[e.key] = false; });
 
-// UI → 메시지
-function setMode(m) {
-  sendMessage('ModeChanged', { mode: m });
-}
-function onTextInput(val) {
-  sendMessage('InputChanged', { text: val });
-}
-function onHashCompute() {
-  sendMessage('ComputeHash', {});
-}
-function onEncryptInput(val) {
-  sendMessage('EncryptInputChanged', { text: val });
-}
-function onEncrypt() {
-  sendMessage('Encrypt', {});
-}
-function onDecrypt() {
-  sendMessage('Decrypt', {});
-}
+function setMode(m) { sendMessage('ModeChanged', { mode: m }); }
+function onTextInput(val) { sendMessage('InputChanged', { text: val }); }
+function onHashCompute() { sendMessage('ComputeHash', {}); }
+function onEncryptInput(val) { sendMessage('EncryptInputChanged', { text: val }); }
+function onEncrypt() { sendMessage('Encrypt', {}); }
+function onDecrypt() { sendMessage('Decrypt', {}); }
 
 // ============================================================
-//  ② UPDATE — 메시지를 받아서 상태만 바꾸기
+//  UPDATE
 // ============================================================
 function update() {
   highlightStep('update');
   const cMsgType = document.getElementById('c-msg-type');
   const cMsgAction = document.getElementById('c-msg-action');
 
-  // 키 입력 → 플레이어 이동
   if (state.mode === 'game' || state.mode === 'both') {
     let moved = false;
     if (state.keys['ArrowLeft'])  { state.player.x -= state.player.speed; moved = true; }
@@ -504,185 +691,131 @@ function update() {
     if (state.keys['ArrowUp'])    { state.player.y -= state.player.speed; moved = true; }
     if (state.keys['ArrowDown'])  { state.player.y += state.player.speed; moved = true; }
 
-    // 화면 밖으로 안 나가게
     state.player.x = Math.max(10, Math.min(550, state.player.x));
     state.player.y = Math.max(10, Math.min(390, state.player.y));
 
-    // 잔상
     if (moved) {
       state.trail.push({ x: state.player.x, y: state.player.y, alpha: 0.5 });
       if (state.trail.length > 15) state.trail.shift();
     }
 
-    // 코인 충돌
     for (let i = state.coins.length - 1; i >= 0; i--) {
       const c = state.coins[i];
-      const dx = state.player.x - c.x;
-      const dy = state.player.y - c.y;
+      const dx = state.player.x - c.x, dy = state.player.y - c.y;
       if (Math.sqrt(dx*dx + dy*dy) < state.player.size + c.size) {
-        // 파티클 생성
         for (let j = 0; j < 8; j++) {
           const angle = (Math.PI * 2 / 8) * j;
           state.particles.push({
             x: c.x, y: c.y,
             vx: Math.cos(angle) * (2 + Math.random() * 2),
             vy: Math.sin(angle) * (2 + Math.random() * 2),
-            life: 1.0,
-            color: '#ff9e64'
+            life: 1.0, color: '#f59e0b'
           });
         }
         state.coins.splice(i, 1);
         state.score += 10;
         sendMessage('CoinCollected', { score: state.score });
-
-        if (state.coins.length === 0) {
-          spawnCoins();
-          sendMessage('NewRound', {});
-        }
+        if (state.coins.length === 0) { spawnCoins(); sendMessage('NewRound', {}); }
       }
     }
-
-    // 코인 반짝임
     state.coins.forEach(c => { c.glow += 0.05; });
   }
 
-  // 파티클 업데이트
   for (let i = state.particles.length - 1; i >= 0; i--) {
     const p = state.particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life -= 0.025;
+    p.x += p.vx; p.y += p.vy; p.life -= 0.025;
     if (p.life <= 0) state.particles.splice(i, 1);
   }
 
-  // 잔상 감쇄
   state.trail.forEach(t => { t.alpha -= 0.03; });
   state.trail = state.trail.filter(t => t.alpha > 0);
 
-  // 메시지 처리
   while (state.messages.length > 0) {
     const msg = state.messages.shift();
-
     switch (msg.type) {
       case 'ModeChanged':
         state.mode = msg.data.mode;
         cMsgType.textContent = `"ModeChanged"`;
         cMsgAction.textContent = `// mode = "${msg.data.mode}"`;
-        document.querySelectorAll('.game-controls button').forEach(b => b.classList.remove('active-btn'));
-        document.getElementById('btn-' + msg.data.mode).classList.add('active-btn');
-        document.getElementById('text-input-area').style.display =
-          (msg.data.mode === 'hash' || msg.data.mode === 'both') ? 'block' : 'none';
-        document.getElementById('encrypt-input-area').style.display =
-          (msg.data.mode === 'encrypt') ? 'block' : 'none';
+        document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('selected'));
+        document.getElementById('btn-' + msg.data.mode).classList.add('selected');
+        document.getElementById('text-input-area').className =
+          (msg.data.mode === 'hash' || msg.data.mode === 'both') ? 'input-area visible' : 'input-area';
+        document.getElementById('encrypt-input-area').className =
+          (msg.data.mode === 'encrypt') ? 'input-area visible' : 'input-area';
         break;
-
       case 'InputChanged':
         state.inputText = msg.data.text;
         cMsgType.textContent = `"InputChanged"`;
         cMsgAction.textContent = `// inputText = "${msg.data.text}"`;
         break;
-
       case 'ComputeHash':
         state.hashResult = simpleHash(state.inputText);
         cMsgType.textContent = `"ComputeHash"`;
-        cMsgAction.textContent = `// hash 계산 완료!`;
-        // 축하 파티클
+        cMsgAction.textContent = `// hash computed!`;
         for (let j = 0; j < 12; j++) {
           const angle = (Math.PI * 2 / 12) * j;
-          state.particles.push({
-            x: 280, y: 200,
-            vx: Math.cos(angle) * 3,
-            vy: Math.sin(angle) * 3,
-            life: 1.0,
-            color: '#9ece6a'
-          });
+          state.particles.push({ x: 280, y: 200, vx: Math.cos(angle)*3, vy: Math.sin(angle)*3, life: 1.0, color: '#22c55e' });
         }
         break;
-
       case 'EncryptInputChanged':
         state.encryptText = msg.data.text;
         cMsgType.textContent = `"EncryptInputChanged"`;
         cMsgAction.textContent = `// encryptText = "${msg.data.text}"`;
         break;
-
       case 'Encrypt':
         state.encKey = Math.floor(Math.random() * 200) + 50;
         state.encrypted = simpleEncrypt(state.encryptText, state.encKey);
         state.decrypted = '';
         cMsgType.textContent = `"Encrypt"`;
-        cMsgAction.textContent = `// key=${state.encKey}, 암호화 완료!`;
+        cMsgAction.textContent = `// key=${state.encKey}, encrypted!`;
         for (let j = 0; j < 10; j++) {
-          state.particles.push({
-            x: 280, y: 200,
-            vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
-            life: 1.0, color: '#bb9af7'
-          });
+          state.particles.push({ x: 280, y: 200, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, life: 1.0, color: '#a855f7' });
         }
         break;
-
       case 'Decrypt':
         if (state.encrypted && state.encKey) {
           state.decrypted = simpleDecrypt(state.encrypted, state.encKey);
           cMsgType.textContent = `"Decrypt"`;
-          cMsgAction.textContent = `// 복호화 완료!`;
+          cMsgAction.textContent = `// decrypted!`;
         }
         break;
-
       case 'CoinCollected':
         cMsgType.textContent = `"CoinCollected"`;
-        cMsgAction.textContent = `// score += 10 → ${msg.data.score}`;
+        cMsgAction.textContent = `// score += 10 = ${msg.data.score}`;
         break;
-
       case 'NewRound':
         cMsgType.textContent = `"NewRound"`;
-        cMsgAction.textContent = `// 새 코인 5개 생성!`;
+        cMsgAction.textContent = `// new coins spawned!`;
         break;
     }
   }
-
   state.frame++;
 }
 
-// 간단한 해시 (교육용 — 실제 SHA-256 아님)
 function simpleHash(str) {
   if (!str) return '';
   let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  // 반복해서 더 섞기
-  for (let round = 0; round < 8; round++) {
-    h ^= (h >>> 16);
-    h = Math.imul(h, 0x45d9f3b);
-  }
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  for (let round = 0; round < 8; round++) { h ^= (h >>> 16); h = Math.imul(h, 0x45d9f3b); }
   const u = (h >>> 0);
-  return u.toString(16).padStart(8, '0') +
-         ((u * 2654435761 >>> 0)).toString(16).padStart(8, '0') +
-         ((u * 2246822519 >>> 0)).toString(16).padStart(8, '0') +
-         ((u * 3266489917 >>> 0)).toString(16).padStart(8, '0');
+  return u.toString(16).padStart(8,'0') + ((u*2654435761>>>0)).toString(16).padStart(8,'0') +
+         ((u*2246822519>>>0)).toString(16).padStart(8,'0') + ((u*3266489917>>>0)).toString(16).padStart(8,'0');
 }
 
-// 간단한 대칭 암호화 (XOR 기반, 교육용)
 function simpleEncrypt(text, key) {
   if (!text) return '';
-  return Array.from(text).map((ch, i) => {
-    const code = ch.charCodeAt(0) ^ ((key + i * 7) & 0xFF);
-    return code.toString(16).padStart(2, '0');
-  }).join('');
+  return Array.from(text).map((ch,i) => { const c = ch.charCodeAt(0)^((key+i*7)&0xFF); return c.toString(16).padStart(2,'0'); }).join('');
 }
 function simpleDecrypt(hex, key) {
   if (!hex) return '';
-  let result = '';
-  for (let i = 0; i < hex.length; i += 2) {
-    const code = parseInt(hex.substr(i, 2), 16) ^ ((key + (i/2) * 7) & 0xFF);
-    result += String.fromCharCode(code);
-  }
-  return result;
+  let r = '';
+  for (let i = 0; i < hex.length; i += 2) { r += String.fromCharCode(parseInt(hex.substr(i,2),16)^((key+(i/2)*7)&0xFF)); }
+  return r;
 }
 
 // ============================================================
-//  ③ VIEW — 상태를 보고 화면을 처음부터 다시 그리기
+//  VIEW
 // ============================================================
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -690,75 +823,77 @@ const ctx = canvas.getContext('2d');
 function view() {
   highlightStep('view');
 
-  // 1) 캔버스 전체 지우기 (매 프레임!)
-  ctx.fillStyle = '#16161e';
+  // Clear
+  ctx.fillStyle = '#09090b';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 2) 그리드 배경
-  ctx.strokeStyle = '#1e1e2e';
-  ctx.lineWidth = 1;
-  for (let x = 0; x < canvas.width; x += 40) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-  }
-  for (let y = 0; y < canvas.height; y += 40) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  // Grid (subtle zinc dots)
+  ctx.fillStyle = '#18181b';
+  for (let x = 20; x < canvas.width; x += 20) {
+    for (let y = 20; y < canvas.height; y += 20) {
+      ctx.fillRect(x, y, 1, 1);
+    }
   }
 
   if (state.mode === 'game' || state.mode === 'both') {
-    // 3) 잔상
+    // Trail
     state.trail.forEach(t => {
       ctx.globalAlpha = t.alpha * 0.3;
       ctx.fillStyle = state.player.color;
       ctx.beginPath();
-      ctx.arc(t.x, t.y, state.player.size * 0.6, 0, Math.PI * 2);
+      ctx.arc(t.x, t.y, state.player.size * 0.5, 0, Math.PI * 2);
       ctx.fill();
     });
     ctx.globalAlpha = 1;
 
-    // 4) 코인 그리기 — state.coins를 보고 그린다
+    // Coins
     state.coins.forEach(c => {
       const glow = Math.sin(c.glow) * 0.3 + 0.7;
       ctx.globalAlpha = glow;
-      ctx.fillStyle = '#ff9e64';
-      ctx.shadowColor = '#ff9e64';
-      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 12;
       ctx.beginPath();
       ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
-      // ₿ 마크
       ctx.globalAlpha = 1;
-      ctx.fillStyle = '#16161e';
-      ctx.font = 'bold 12px Consolas';
+      ctx.fillStyle = '#09090b';
+      ctx.font = 'bold 11px JetBrains Mono';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('₿', c.x, c.y);
+      ctx.fillText('$', c.x, c.y + 1);
     });
     ctx.globalAlpha = 1;
 
-    // 5) 플레이어 그리기 — state.player를 보고 그린다
+    // Player
     ctx.fillStyle = state.player.color;
     ctx.shadowColor = state.player.color;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 16;
     ctx.beginPath();
     ctx.arc(state.player.x, state.player.y, state.player.size, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
-    // 눈
-    ctx.fillStyle = '#16161e';
-    const eyeOffX = (state.keys['ArrowRight'] ? 5 : state.keys['ArrowLeft'] ? -5 : 0);
-    const eyeOffY = (state.keys['ArrowDown'] ? 4 : state.keys['ArrowUp'] ? -4 : 0);
-    ctx.beginPath(); ctx.arc(state.player.x - 5 + eyeOffX, state.player.y - 3 + eyeOffY, 3, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(state.player.x + 5 + eyeOffX, state.player.y - 3 + eyeOffY, 3, 0, Math.PI*2); ctx.fill();
+    // Eyes
+    ctx.fillStyle = '#09090b';
+    const ex = (state.keys['ArrowRight'] ? 4 : state.keys['ArrowLeft'] ? -4 : 0);
+    const ey = (state.keys['ArrowDown'] ? 3 : state.keys['ArrowUp'] ? -3 : 0);
+    ctx.beginPath(); ctx.arc(state.player.x-5+ex, state.player.y-3+ey, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(state.player.x+5+ex, state.player.y-3+ey, 3, 0, Math.PI*2); ctx.fill();
 
-    // 6) 점수 — state.score를 보고 그린다
-    ctx.fillStyle = '#e0e0e0';
-    ctx.font = 'bold 18px Segoe UI';
+    // Score (forui-style card overlay)
+    ctx.fillStyle = 'rgba(24,24,27,0.85)';
+    roundRect(ctx, 10, 10, 120, 32, 8); ctx.fill();
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 1;
+    roundRect(ctx, 10, 10, 120, 32, 8); ctx.stroke();
+    ctx.fillStyle = '#fafafa';
+    ctx.font = '600 14px Inter';
     ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${state.score}`, 15, 30);
+    ctx.fillText(`Score  ${state.score}`, 22, 31);
   }
 
-  // 7) 파티클 — state.particles를 보고 그린다
+  // Particles
   state.particles.forEach(p => {
     ctx.globalAlpha = p.life;
     ctx.fillStyle = p.color;
@@ -768,130 +903,106 @@ function view() {
   });
   ctx.globalAlpha = 1;
 
-  // 8) 앱 모드: 해시 결과 표시
+  // Hash result overlay
   if ((state.mode === 'hash' || state.mode === 'both') && state.hashResult) {
-    // 결과 박스
-    const bx = 30, by = state.mode === 'both' ? 50 : 100, bw = 500, bh = 80;
-    ctx.fillStyle = 'rgba(26, 26, 46, 0.9)';
-    ctx.strokeStyle = '#9ece6a';
-    ctx.lineWidth = 2;
-    roundRect(ctx, bx, by, bw, bh, 10);
-    ctx.fill();
-    ctx.stroke();
+    const bx = 20, by = state.mode === 'both' ? 52 : 80, bw = 520, bh = 76;
+    ctx.fillStyle = 'rgba(24,24,27,0.92)';
+    roundRect(ctx, bx, by, bw, bh, 12); ctx.fill();
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 1;
+    roundRect(ctx, bx, by, bw, bh, 12); ctx.stroke();
 
-    ctx.fillStyle = '#9ece6a';
-    ctx.font = 'bold 13px Segoe UI';
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '600 12px Inter';
     ctx.textAlign = 'left';
-    ctx.fillText('Hash Result:', bx + 15, by + 22);
+    ctx.fillText('Hash Result', bx+16, by+20);
 
-    ctx.fillStyle = '#e0e0e0';
-    ctx.font = '14px Consolas';
-    ctx.fillText(state.hashResult, bx + 15, by + 50);
+    ctx.fillStyle = '#fafafa';
+    ctx.font = '13px JetBrains Mono';
+    ctx.fillText(state.hashResult, bx+16, by+44);
 
-    ctx.fillStyle = '#565f89';
-    ctx.font = '11px Segoe UI';
-    ctx.fillText(`입력: "${state.inputText}"  |  ${state.hashResult.length * 4} bits`, bx + 15, by + 70);
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font = '11px Inter';
+    ctx.fillText(`Input: "${state.inputText}"  ·  ${state.hashResult.length * 4} bits`, bx+16, by+64);
   }
 
-  // 9) 암호화 모드: 결과 표시
+  // Encrypt result overlay
   if (state.mode === 'encrypt') {
-    const bx = 30, by = 60;
-    // 원본
-    ctx.fillStyle = 'rgba(26, 26, 46, 0.9)';
-    ctx.strokeStyle = '#bb9af7';
-    ctx.lineWidth = 2;
-    roundRect(ctx, bx, by, 500, 60, 10); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#bb9af7'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'left';
-    ctx.fillText('Plain:', bx+12, by+20);
-    ctx.fillStyle = '#e0e0e0'; ctx.font = '14px Consolas';
-    ctx.fillText(state.encryptText || '(입력 대기)', bx+12, by+45);
+    const bx = 20, by = 50;
+    // Plain
+    ctx.fillStyle = 'rgba(24,24,27,0.92)';
+    roundRect(ctx, bx, by, 520, 56, 12); ctx.fill();
+    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 1;
+    roundRect(ctx, bx, by, 520, 56, 12); ctx.stroke();
+    ctx.fillStyle = '#a855f7'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+    ctx.fillText('Plaintext', bx+16, by+18);
+    ctx.fillStyle = '#fafafa'; ctx.font = '13px JetBrains Mono';
+    ctx.fillText(state.encryptText || '(waiting...)', bx+16, by+42);
 
     if (state.encrypted) {
-      // 암호문
-      ctx.fillStyle = 'rgba(26, 26, 46, 0.9)';
-      ctx.strokeStyle = '#f7768e';
-      roundRect(ctx, bx, by+80, 500, 60, 10); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#f7768e'; ctx.font = 'bold 12px Segoe UI';
-      ctx.fillText(`Encrypted (key=${state.encKey}):`, bx+12, by+100);
-      ctx.fillStyle = '#e0e0e0'; ctx.font = '13px Consolas';
-      ctx.fillText(state.encrypted.slice(0, 50) + (state.encrypted.length > 50 ? '...' : ''), bx+12, by+125);
+      ctx.fillStyle = 'rgba(24,24,27,0.92)';
+      roundRect(ctx, bx, by+74, 520, 56, 12); ctx.fill();
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1;
+      roundRect(ctx, bx, by+74, 520, 56, 12); ctx.stroke();
+      ctx.fillStyle = '#ef4444'; ctx.font = '600 11px Inter';
+      ctx.fillText(`Encrypted  (key=${state.encKey})`, bx+16, by+92);
+      ctx.fillStyle = '#fafafa'; ctx.font = '12px JetBrains Mono';
+      ctx.fillText(state.encrypted.slice(0,52) + (state.encrypted.length>52?'...':''), bx+16, by+116);
     }
     if (state.decrypted) {
-      // 복호문
-      ctx.fillStyle = 'rgba(26, 26, 46, 0.9)';
-      ctx.strokeStyle = '#9ece6a';
-      roundRect(ctx, bx, by+160, 500, 60, 10); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#9ece6a'; ctx.font = 'bold 12px Segoe UI';
-      ctx.fillText('Decrypted:', bx+12, by+180);
-      ctx.fillStyle = '#e0e0e0'; ctx.font = '14px Consolas';
-      ctx.fillText(state.decrypted, bx+12, by+205);
+      ctx.fillStyle = 'rgba(24,24,27,0.92)';
+      roundRect(ctx, bx, by+148, 520, 56, 12); ctx.fill();
+      ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 1;
+      roundRect(ctx, bx, by+148, 520, 56, 12); ctx.stroke();
+      ctx.fillStyle = '#22c55e'; ctx.font = '600 11px Inter';
+      ctx.fillText('Decrypted', bx+16, by+166);
+      ctx.fillStyle = '#fafafa'; ctx.font = '13px JetBrains Mono';
+      ctx.fillText(state.decrypted, bx+16, by+190);
     }
   }
 
-  // 10) 모드 표시
-  ctx.fillStyle = '#565f89';
-  ctx.font = '11px Segoe UI';
+  // Mode/frame label
+  ctx.fillStyle = '#3f3f46';
+  ctx.font = '10px JetBrains Mono';
   ctx.textAlign = 'right';
-  ctx.fillText(`mode: ${state.mode}  |  frame: ${state.frame}`, canvas.width - 10, canvas.height - 10);
+  ctx.fillText(`${state.mode} · frame ${state.frame}`, canvas.width - 12, canvas.height - 10);
 
-  // ===== 오른쪽 패널 업데이트 =====
   updateStatePanel();
   updateCodePanel();
 }
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
 }
 
 // ============================================================
-//  🔄 GAME LOOP — 이게 전부입니다
+//  GAME LOOP
 // ============================================================
-let lastTime = performance.now();
-let fpsCounter = 0;
-let fpsDisplay = 0;
-let lastFpsUpdate = 0;
+let fpsCounter = 0, fpsDisplay = 0, lastFpsUpdate = 0;
 
 function gameLoop(timestamp) {
-  // FPS 계산
   fpsCounter++;
   if (timestamp - lastFpsUpdate > 1000) {
-    fpsDisplay = fpsCounter;
-    fpsCounter = 0;
-    lastFpsUpdate = timestamp;
+    fpsDisplay = fpsCounter; fpsCounter = 0; lastFpsUpdate = timestamp;
   }
-
   highlightStep('state');
-
-  // ② 상태 업데이트
   update();
-
-  // ③ 화면 그리기
   view();
-
-  // FPS 표시
-  document.getElementById('fps').textContent = `${fpsDisplay} FPS | Frame #${state.frame}`;
-
-  // 🔄 다음 프레임 요청 — 무한 반복!
+  document.getElementById('fps').textContent = `${fpsDisplay} FPS · #${state.frame}`;
   requestAnimationFrame(gameLoop);
 }
 
 // ============================================================
-//  UI 헬퍼
+//  UI Helpers
 // ============================================================
 function highlightStep(step) {
   document.querySelectorAll('.loop-step').forEach(el => el.classList.remove('active-step'));
   document.getElementById('ind-' + step).classList.add('active-step');
-
   document.querySelectorAll('.code-block').forEach(el => el.classList.remove('active'));
   if (step === 'state') document.getElementById('code-state').classList.add('active');
   if (step === 'update') document.getElementById('code-update').classList.add('active');
@@ -914,8 +1025,8 @@ function updateStatePanel() {
   updateVal('s-coins', state.coins.length);
   updateVal('s-mode', state.mode);
   updateVal('s-input', `"${state.inputText}"`);
-  updateVal('s-hash', state.hashResult ? state.hashResult.slice(0, 24) + '...' : '""');
-  updateVal('s-enc', state.encrypted ? state.encrypted.slice(0, 24) + '...' : '""');
+  updateVal('s-hash', state.hashResult ? state.hashResult.slice(0,20)+'...' : '""');
+  updateVal('s-enc', state.encrypted ? state.encrypted.slice(0,20)+'...' : '""');
   updateVal('s-frame', state.frame);
   updateVal('s-fps', fpsDisplay);
   updateVal('s-particles', state.particles.length);
@@ -932,9 +1043,7 @@ function updateCodePanel() {
   document.getElementById('c-hash').textContent = state.hashResult ? `"${state.hashResult.slice(0,16)}..."` : '""';
 }
 
-// ============================================================
-//  시작!
-// ============================================================
+// Start!
 requestAnimationFrame(gameLoop);
 </script>
 </body>
